@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>极致工作室产品保修与服务记录查询</title>
+
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,Arial;background:#f3f4f6;margin:0;padding:16px;}
+.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,.06);}
+h3{margin:6px 0 12px 0}
+.item{margin-bottom:12px}
+.label{color:#888;font-size:13px}
+.value{font-size:15px;font-weight:600}
+input{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px}
+button{width:100%;padding:12px;margin-top:10px;border-radius:12px;border:none;font-size:15px;font-weight:600;background:#4B7BFF;color:#fff}
+.ok{color:#22bb33}
+.warn{color:#cc3333}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h3>极致工作室与MaxCine团队产品的保障期与服务状态</h3>
+
+  <p style="color:#666;font-size:13px">
+    支持查询极致工作室与MaxCine团队产品的保障期与服务状态
+  </p >
+
+  <div id="inputBox">
+    <div class="item">
+      <div class="label">产品序列号</div>
+      <input id="snInput" placeholder="请输入产品 SN">
+    </div>
+
+    <div class="item">
+      <div class="label">校验码</div>
+      <input id="codeInput" placeholder="请输入校验码（快递单号后4位）">
+    </div>
+
+    <button onclick="go()">查询</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="info" style="display:none;">
+    <div class="item"><div class="label">产品版本</div><div id="version" class="value"></div></div>
+    <div class="item"><div class="label">购买日期</div><div id="buy_date" class="value"></div></div>
+    <div class="item"><div class="label">保修开始</div><div id="start_date" class="value"></div></div>
+    <div class="item"><div class="label">保修结束</div><div id="end_date" class="value"></div></div>
+    <div class="item"><div class="label">维修记录</div><div id="repair" class="value"></div></div>
+  </div>
+</div>
+
+<script>
+function getParam(n){
+  return new URLSearchParams(location.search).get(n);
+}
+
+function go(){
+  const sn = snInput.value.trim();
+  const code = codeInput.value.trim();
+  if(!sn || !code){ alert("请输入 SN 与校验码"); return; }
+  location.href = "?sn="+sn+"&code="+code;
+}
+
+const sn = getParam("sn");
+const code = getParam("code");
+
+if(sn && code){
+  fetch("./data/"+sn+".json")
+  .then(r=>r.json())
+  .then(d=>{
+    if(code !== d.verify_code){
+      status.innerHTML = "<p class='warn'>校验码不正确</p >";
+      return;
+    }
+
+    info.style.display="block";
+    version.innerText=d.version;
+    buy_date.innerText=d.buy_date;
+    start_date.innerText=d.start_date;
+    end_date.innerText=d.end_date;
+    repair.innerText=d.repair_record||"无";
+
+    const now=new Date(), end=new Date(d.end_date);
+    status.innerHTML = end>=now
+      ? "<p class='ok'>当前状态：在保</p >"
+      : "<p class='warn'>当前状态：已过保</p >";
+  })
+  .catch(()=>{
+    status.innerHTML="<p class='warn'>未找到该 SN 的产品信息，请确认SN是否正确</p >";
+  });
+}
+</script>
+
+</body>
+</html>

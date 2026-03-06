@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charSet="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="static/css/style.css" />
+  <link rel="stylesheet" href="static/css/style2.css" />
+  <style>
+    .turnstile-container {
+      width: 300px;
+      height: 65px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .turnstile-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .turnstile-success {
+      display: none;
+      color: #00b000;
+      font-size: 24px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .verify-button {
+      pointer-events: none;
+      transition: all .3s;
+    }
+
+    #verify-button.verify-button-active {
+      background-color: #3b82f6 !important;
+      cursor: pointer !important;
+      pointer-events: auto;
+    }
+
+    .verify-button.loading {
+      background-color: #cccccc !important;
+      cursor: wait !important;
+      position: relative;
+    }
+
+    .verify-button.loading::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: spin 1s linear infinite;
+    }
+
+    /* ✅ 隐藏视频 */
+    #turnstile-video {
+      display: none !important;
+    }
+  </style>
+  <title>EverDr</title>
+  <meta name="description" content="Medical Certificate Verification" />
+</head>
+
+<body class="__className_9c011f  antialiased">
+  <div class="flex justify-items-center min-h-screen p-2 sm:p-6 gap-16 font-[family-name:var(--font-geist-sans)]">
+    <main class="rounded flex flex-col flex-1 gap-2 sm:gap-8 row-start-2 items-center sm:items-start p-4 max-w-[100%]">
+      <div class="w-full flex sm:p-[93px] p-[24px] text-white justify-center content-center bg-custom-bg bg-cover bg-center rounded-[4px]">
+        <h1 class="sm:text-[40px] text-[16px] font-semibold">Medical Certificate Verification</h1>
+      </div>
+
+      <div class="w-full flex justify-center flex-col items-center">
+        <form class="flex flex-col gap-4 p-4 w-[330px]">
+          <input type="text" id="certificate-number" class="border border-neutral-300 rounded p-2"
+            placeholder="Enter medical certification number" required name="cert_no" value="" />
+          <input type="text" id="nric-number" class="border border-neutral-300 rounded p-2"
+            placeholder="Enter patient's NRIC" required name="patient_nric" value="" />
+          <div id="cf-turnstile" class="turnstile-container">
+            <video muted autoplay="autoplay" id="turnstile-video" playsinline webkit-playsinline>
+              <source src="static/images/video.mp4" type="video/mp4">
+            </video>
+          </div>
+          <button class="bg-neutral-500 text-white p-2 rounded font-semibold verify-button" type="submit"
+            id="verify-button">Verify</button>
+        </form>
+
+        <!-- 证书 -->
+        <div class="EmcValidate_wrapCertResult" style="display: none;">
+          <div class="flex flex-col gap-8 sm:gap-10 text-[14px]" style="width: 100%;">
+            <div class="flex justify-between">
+              <div class="flex flex-col gap-1">
+                <div class="text-[20px] font-bold clinic_name">HealthLight Family Medicine Clinic</div>
+                <div class="clinic_address">Blk 601 Choa Chu Kang Street 62 #01-09 Singapore 680601</div>
+              </div>
+              <div>
+                <img alt="approval seal" loading="lazy" width="95" height="79" decoding="async" data-nimg="1"
+                  src="static/images/approval.svg" style="color: transparent;">
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="text-[20px] sm:text-[32px] font-bold">MEDICAL CERTIFICATE</div>
+              <div class="cert_no">No: 2921067</div>
+              <div class="issue_date">Issued date: 23/12/2024</div>
+            </div>
+            <div class="flex flex-col gap-2 sm:gap-4">
+              <div>Name: <b class="patient_name">奕博 程</b></div>
+              <div>NRIC/Passport number: <b class="patient_nric">M0306588R</b></div>
+              <div>Start Date: <b class="start_date">23/12/2024</b></div>
+              <div>End Date: <b class="end_date">23/12/2024</b></div>
+              <div>Type of medical leave granted: <b class="leave_type">Medical Certificate</b></div>
+              <div>This is to certify that the patient is unfit for duty for a period of <span class="days">1</span>
+                days</div>
+              <div>Issued by: <b class="doctor">Dr Ng Zi Hao</b></div>
+            </div>
+            <div>
+              <div class="text-xs italic">This MC is not valid for Court Attendance or Police Report</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    window.addEventListener('load', function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const certNo = urlParams.get('cert_no');
+      const nric = urlParams.get('patient_nric');
+
+      if (certNo) document.getElementById('certificate-number').value = certNo;
+      if (nric) document.getElementById('nric-number').value = nric;
+
+      if (certNo && nric) {
+        setTimeout(() => {
+          document.getElementById('verify-button').click();
+        }, 2500);
+      }
+
+      const video = document.getElementById('turnstile-video');
+      if (video) {
+        video.addEventListener('ended', function () {
+          video.currentTime = video.duration;
+        });
+      }
+
+      const verifyButton = document.getElementById('verify-button');
+      const form = document.querySelector('form');
+      const certResult = document.querySelector('.EmcValidate_wrapCertResult');
+      let certificatesData = null;
+
+      fetch('static/data/certificates.json')
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to load certificates data');
+          return response.json();
+        })
+        .then(data => {
+          certificatesData = data;
+          console.log('Certificates data loaded successfully');
+        })
+        .catch(error => {
+          console.error('Error loading certificates:', error);
+          alert('Failed to load certificate data. Please refresh the page and try again.');
+        });
+
+      setTimeout(() => {
+        verifyButton.classList.add('verify-button-active');
+      }, 2000);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const certNo = document.getElementById('certificate-number').value;
+        const nric = document.getElementById('nric-number').value;
+
+        verifyButton.classList.add('loading');
+        verifyButton.textContent = 'Loading...';
+        verifyButton.disabled = true;
+
+        if (!certificatesData) {
+          setTimeout(() => {
+            alert('Certificate data is still loading. Please try again.');
+            verifyButton.classList.remove('loading');
+            verifyButton.textContent = 'Verify';
+            verifyButton.disabled = false;
+          }, 1000);
+          return;
+        }
+
+        setTimeout(() => {
+          const certificate = certificatesData.certificates.find(
+            cert => cert.cert_no === certNo && cert.patient_nric === nric
+          );
+
+          if (certificate) {
+            document.querySelector('.clinic_name').textContent = certificate.clinic_name;
+            document.querySelector('.clinic_address').textContent = certificate.clinic_address;
+            document.querySelector('.cert_no').textContent = `No: ${certificate.cert_no}`;
+            document.querySelector('.issue_date').textContent = `Issued date: ${certificate.issue_date}`;
+            document.querySelector('.patient_name').textContent = certificate.patient_name;
+            document.querySelector('.patient_nric').textContent = certificate.patient_nric;
+            document.querySelector('.start_date').textContent = certificate.start_date;
+            document.querySelector('.end_date').textContent = certificate.end_date;
+            document.querySelector('.leave_type').textContent = certificate.leave_type;
+            document.querySelector('.days').textContent = certificate.days;
+            document.querySelector('.doctor').textContent = certificate.doctor;
+            document.querySelector('.text-xs.italic').textContent = certificate.italic;
+
+            certResult.style.display = 'block';
+          } else {
+            alert('No matching certificate found.');
+            certResult.style.display = 'none';
+          }
+
+          verifyButton.classList.remove('loading');
+          verifyButton.textContent = 'Verify';
+          verifyButton.disabled = false;
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+
+</html>
