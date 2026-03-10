@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MaxCine产品保修与服务记录查询</title>
+<title>MaxCINE产品保修与服务记录查询</title>
 
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,Arial;background:#f3f4f6;margin:0;padding:16px;}
@@ -43,7 +43,7 @@ button{width:100%;padding:12px;margin-top:10px;border-radius:12px;border:none;fo
   <h3>MaxCine产品保修与服务记录查询</h3>
 
   <p style="color:#666;font-size:13px">
-    支持查询MaxCine与极致工作室产品的保修期与服务记录
+    查看产品的保修期与服务记录，以便更充分的了解产品所属信息。
   </p >
 
   <div id="inputBox">
@@ -115,8 +115,8 @@ function loadData(sn, code){
 
       const now=new Date(), endD=new Date(d.end_date);
       statusDiv.innerHTML = endD>=now
-        ? "<p class='ok'>当前状态：在保</p >"
-        : "<p class='warn'>当前状态：过保</p >";
+        ? "<p class='ok'>当前状态：位于有限保修期内</p >"
+        : "<p class='warn'>当前状态：超出产品有限保修期</p >";
     })
     .catch(e=>{
       statusDiv.innerHTML="<p class='warn'>"+e.message+"</p >";
